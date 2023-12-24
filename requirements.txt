@@ -1,0 +1,2 @@
+gradio --upgrade
+openai --upgrade
