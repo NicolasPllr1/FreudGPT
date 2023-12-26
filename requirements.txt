@@ -1,2 +1,4 @@
 gradio --upgrade
 openai --upgrade
+torch --upgrade
+transformers --upgrade
