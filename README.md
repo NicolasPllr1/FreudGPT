@@ -1,6 +1,8 @@
 # FreudGPT : a psychologist assisstant 
 
-Choose the psychologist you would like advice from and try it out !
+![Alt "Freud Ai-generated image"](img/stable-diffusion-turbo_Freud.jpeg)
+
+**Choose the psychologist you would like advice from and try it out !**
 
 ## Under the hood
 An LLM is powering the chatbot. You can choose to use an open-source model or one of OpenAI's model if you have an API key.
