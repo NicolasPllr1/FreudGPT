@@ -29,7 +29,8 @@ def generate_answer(
     tokenizer: AutoTokenizer | None = None,
 ):
     """
-    Root function for generating answers
+    Root function for generating answers.
+    Dispatches the generation to the right function based on the chosen model.
 
     Parameters:
         psy_name_chosen: name of the psychoanalyst chosen. The response will be generated based on this persona.
