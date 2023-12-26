@@ -1,43 +1,77 @@
-from openai import OpenAI
 import gradio as gr
 
-import logging
+from utils import (
+    load_model,
+    generate_answer,
+)
 
-logger = logging.getLogger()
+from constants import (
+    PSY_NAMES,
+    DEFAULT_PSY,
+    MODEL_NAMES,
+    DEFAULT_MODEL,
+)
 
-# /!\ You need your API secret key as an environment variable /!\
-client = OpenAI()
 
+def predict(
+    message: str,
+    history: list[list[str, str]],
+    psy_name_chosen: str,
+    model_name: str,
+):
+    """
+    Takes in a dialogue history and a message, and returns a response.
 
-def predict(message, history):
-    psychologist_context = "You are Sigmund Freud, the father of modern psychanalysis. You will be helping a fellow psychologist. Please explain your ideas, concepts, and resonnings step by step when answering their questions. You can cite your work and books as references. Please answer in French."
-    history_openai_format = [{"role": "system", "content": psychologist_context}]
-    for human, assistant in history:
-        history_openai_format.append({"role": "user", "content": human})
-        history_openai_format.append({"role": "assistant", "content": assistant})
-    history_openai_format.append({"role": "user", "content": message})
-
-    response_stream = client.chat.completions.create(
-        model="gpt-3.5-turbo", messages=history_openai_format, stream=True
+    Parameters:
+        message: new message from the user.
+        history: list of two-element lists containing the message-response history.
+        psy_name_chosen: name of the psychoanalyst chosen. The response will be generated based on this persona.
+        model_name: name of the model to use to generate the response. Default value or chosen by the user.
+    """
+    global model, tokenizer
+    yield from generate_answer(
+        psy_name_chosen,
+        model_name,
+        message,
+        history,
+        model,
+        tokenizer,
     )
 
-    partial_message = ""
-    for chunk in response_stream:
-        if chunk.choices[0].delta.content is not None:
-            partial_message = partial_message + chunk.choices[0].delta.content
-            yield partial_message
 
-
-# My patient always tell me how despicable her father is. How can I help her?
+# Quel est le lien entre la pulsion auto-érotique et le narcissisme ? En prenant en compte l'évolution de ta pensée de 1905 à la fin de ta carrière ?
 def gradio_app():
-    gr.ChatInterface(
-        predict,
-        title="FreudGPT",
-        theme=gr.themes.Soft(),
-    ).queue().launch()
+    global model, tokenizer
+    tokenizer, model = None, None
+
+    with gr.Blocks() as demo:
+        psy_name_chosen = gr.Dropdown(
+            choices=PSY_NAMES,
+            value=DEFAULT_PSY,
+            label="Choose Your Assistant",
+        )
+
+        model_name_chosen = gr.Dropdown(
+            choices=MODEL_NAMES,
+            value=DEFAULT_MODEL,
+            label="Choose Your Model",
+        )
+        b = gr.Button("Load model")
+        b.click(
+            load_model,
+            inputs=[model_name_chosen],
+        )
+
+        gr.ChatInterface(
+            predict,
+            additional_inputs=[psy_name_chosen, model_name_chosen],
+            title="FreudGPT",
+            theme="soft",
+        )
+
+    demo.queue().launch()
 
 
 if __name__ == "__main__":
     # Launch the Gradio interface
-    logger.info("Launching Gradio Interface...")
     gradio_app()
