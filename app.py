@@ -6,12 +6,7 @@ from utils import (
     transcribe,
 )
 
-from constants import (
-    PSY_NAMES,
-    DEFAULT_PSY,
-    MODEL_NAMES,
-    DEFAULT_MODEL,
-)
+import constants as cst
 
 
 def predict(
@@ -19,6 +14,7 @@ def predict(
     history: list[list[str, str]],
     psy_name_chosen: str,
     model_name: str,
+    # audio_recording,
 ):
     """
     Takes in a dialogue history and a message, and returns a response.
@@ -29,43 +25,40 @@ def predict(
         psy_name_chosen: name of the psychoanalyst chosen. The response will be generated based on this persona.
         model_name: name of the model to use to generate the response. Default value or chosen by the user.
     """
-    global model, tokenizer, audio_question
 
     # If the user has recorded a question, we use it instead of the text input
-    if audio_question:
-        message = audio_question
-        audio_question = None
+    if cst.AUDIO_QUESTION is not None and len(cst.AUDIO_QUESTION) > 0:
+        print(f"Audio question : {cst.AUDIO_QUESTION}")
+        message = cst.AUDIO_QUESTION
+        # Reset the audio question
+        cst.AUDIO_QUESTION = None
 
     yield from generate_answer(
         psy_name_chosen,
         model_name,
         message,
         history,
-        model,
-        tokenizer,
+        # model,
+        # tokenizer,
     )
 
 
 # Quel est le lien entre la pulsion auto-érotique et le narcissisme ? En prenant en compte l'évolution de ta pensée de 1905 à la fin de ta carrière ?
 def gradio_app():
-    global model, tokenizer, audio_question
-    tokenizer, model = None, None
-    audio_question = None
-
     with gr.Blocks(theme=gr.themes.Soft()) as demo:
         # ------------------
         # Psychologist selection
         psy_name_chosen = gr.Dropdown(
-            choices=PSY_NAMES,
-            value=DEFAULT_PSY,
+            choices=cst.PSY_NAMES,
+            value=cst.DEFAULT_PSY,
             label="Choose Your Assistant",
         )
 
         # ------------------
         # Model selection
         model_name_chosen = gr.Dropdown(
-            choices=MODEL_NAMES,
-            value=DEFAULT_MODEL,
+            choices=cst.MODEL_NAMES,
+            value=cst.DEFAULT_MODEL,
             label="Choose Your Model",
         )
         b_load_model = gr.Button("Load model")
@@ -84,11 +77,12 @@ def gradio_app():
         b_transcribe_audio.click(
             transcribe,
             inputs=[audio_recording],
+            show_progress=True,
         )
 
         # ------------------
         # chatbot interface
-        gr.ChatInterface(
+        chat = gr.ChatInterface(
             predict,
             additional_inputs=[psy_name_chosen, model_name_chosen],
             title="FreudGPT",

@@ -14,14 +14,16 @@ from threading import Thread
 
 from openai import OpenAI
 
-from constants import CONTEXT, MODEL_IDS, PRECISION, GENERATION_CONFIG, DEFAULT_CACHE
+import constants as cst
 
-# /!\ You need your API secret key as an environment variable /!\ to use OpenAI's API
-client = OpenAI()
+from constants import (
+    CONTEXT,
+    MODEL_IDS,
+    PRECISION,
+    GENERATION_CONFIG,
+    DEFAULT_CACHE,
+)
 
-## test if an OpenAI API key is available as en environment variable
-# if client.api_key is None:
-#    print("No OpenAI API key found. OpenAI's API will not be used.")
 
 
 # --------------------------------------------
@@ -33,8 +35,8 @@ def generate_answer(
     model_name_chosen: str,
     message: str,
     history: list[list[str, str]],
-    model: AutoModelForCausalLM | None = None,
-    tokenizer: AutoTokenizer | None = None,
+    # model: AutoModelForCausalLM | None = None,
+    # tokenizer: AutoTokenizer | None = None,
 ):
     """
     Root function for generating answers.
@@ -52,7 +54,7 @@ def generate_answer(
     if "parrot" in model_name_chosen:
         return generate_parrot(message, history, psy_name_chosen)
     elif "gpt" not in model_name_chosen:
-        return generate_hf(message, history, psy_name_chosen, model, tokenizer)
+        return generate_hf(message, history, psy_name_chosen, cst.MODEL, cst.TOKENIZER)
     else:
         return generate_openai(message, history, psy_name_chosen)
 
@@ -72,8 +74,10 @@ def generate_parrot(
         psy_name_chosen: name of the psychoanalyst chosen. The response will be generated based on this persona.
     """
     # Repeats the message like a parrot
-    intro = f"Hey! {psy_name_chosen} there. Sorry I didn't hear well, did you say: "
-    to_say = intro + message
+    print(f"Message received by the parrot :\n{message}")
+    to_say = (
+        f"Hey! {psy_name_chosen} here. Sorry I didn't hear well, did you say: {message}"
+    )
 
     for len_current_msg in range(len(to_say)):
         time.sleep(0.02)
@@ -99,7 +103,7 @@ def generate_hf(
         tokenizer: tokenizer to use to generate the response.
     """
 
-    psy_context = CONTEXT[psy_name_chosen]
+    psy_context = cst.CONTEXT[psy_name_chosen]
     system_context = ["<system>:" + psy_context, ""]
     dialogue_history_to_format = [system_context] + history + [[message, ""]]
     messages = "".join(
@@ -116,7 +120,7 @@ def generate_hf(
     generate_kwargs = dict(
         input_tokens,
         streamer=streamer,
-        **GENERATION_CONFIG,
+        **cst.GENERATION_CONFIG,
     )
     t = Thread(target=model.generate, kwargs=generate_kwargs)
 
@@ -145,8 +149,16 @@ def generate_openai(
         psy_name_chosen: name of the psychoanalyst chosen. The response will be generated based on this persona.
     """
 
+    # /!\ You need your API secret key as an environment variable /!\ to use OpenAI's API
+    client = OpenAI()
+    
+    ## test if an OpenAI API key is available as en environment variable
+    # if client.api_key is None:
+    #    print("No OpenAI API key found. OpenAI's API will not be used.")
+
+
     # add the context of the chosen psychoanalyst
-    psy_context = CONTEXT[psy_name_chosen]
+    psy_context = cst.CONTEXT[psy_name_chosen]
     history_openai_format = [{"role": "system", "content": psy_context}]
 
     # add the conversation history
@@ -177,8 +189,8 @@ def generate_openai(
 
 def load_model(
     model_name: str,
-    precision: str = PRECISION,
-    cache_dir: str = DEFAULT_CACHE,
+    precision: str = cst.PRECISION,
+    cache_dir: str = cst.DEFAULT_CACHE,
 ):
     """
     Loads the model and its tokenizer.
@@ -189,27 +201,25 @@ def load_model(
         cache_dir: path to the cache directory. Default value.
     """
 
-    global tokenizer, model
-
     if "gpt" or "parrot" in model_name:
         print(f"Loading {model_name}")
-        tokenizer = model_name
-        model = model_name
+        cst.TOKENIZER = model_name
+        cst.MODEL = model_name
         print(f"{model_name} loaded :)")
 
     else:
         print(f"Loading {model_name}")
-        model_id = MODEL_IDS[model_name]
+        model_id = cst.MODEL_IDS[model_name]
         if precision == "4":
             print("Loading model in 4 bits")
-            tokenizer = AutoTokenizer.from_pretrained(model_id)
+            cst.TOKENIZER = AutoTokenizer.from_pretrained(model_id)
             nf4_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True,
                 bnb_4bit_compute_dtype=torch.bfloat16,
             )
-            model = AutoModelForCausalLM.from_pretrained(
+            cst.MODEL = AutoModelForCausalLM.from_pretrained(
                 model_id,
                 quantization_config=nf4_config,
                 device_map="auto",  # accelerate dispatches layers to ram, vram or disk
@@ -224,12 +234,17 @@ def load_model(
 transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-tiny.en")
 
 
-def transcribe(audio):
-    global audio_question
+def transcribe(audio: (int, np.ndarray)):
+    """
+    Transcribes the audio recording (speech2text)
+
+    Parameters:
+        audio: tuple containing the sampling rate and the audio recording.
+    """
     sr, y = audio
     y = y.astype(np.float32)
     y /= np.max(np.abs(y))
 
     print("Transcribing the audio ...")
-    audio_question = transcriber({"sampling_rate": sr, "raw": y})["text"]
-    print("Transcription is done :) Got the following text:\n", audio_question)
+    cst.AUDIO_QUESTION = transcriber({"sampling_rate": sr, "raw": y})["text"]
+    print("Transcription is done :) Got the following text:\n", cst.AUDIO_QUESTION)

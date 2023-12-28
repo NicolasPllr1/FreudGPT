@@ -1,3 +1,8 @@
+####### MODEL TOKENIZER SHARED ACCROSS MODULES #######
+
+MODEL = None
+TOKENIZER = None
+
 ####### CONTEXT FOR GENERATION #######
 PSY_NAMES = {
     "Sigmund Freud",
@@ -49,3 +54,6 @@ GENERATION_CONFIG = dict(
     temperature=1.0,
     num_beams=1,
 )
+
+####### AUDIO QUESTION SHARED ACCROSS MODULES #######
+AUDIO_QUESTION = None
