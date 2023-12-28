@@ -5,6 +5,10 @@ from transformers import (
     BitsAndBytesConfig,
     TextIteratorStreamer,
 )
+
+from transformers import pipeline
+import numpy as np
+
 import time
 from threading import Thread
 
@@ -18,6 +22,10 @@ client = OpenAI()
 ## test if an OpenAI API key is available as en environment variable
 # if client.api_key is None:
 #    print("No OpenAI API key found. OpenAI's API will not be used.")
+
+
+# --------------------------------------------
+# functions to generate the response
 
 
 def generate_answer(
@@ -163,6 +171,10 @@ def generate_openai(
     print("Answer generated :)")
 
 
+# --------------------------------------------
+# functions to load the model
+
+
 def load_model(
     model_name: str,
     precision: str = PRECISION,
@@ -183,6 +195,7 @@ def load_model(
         print(f"Loading {model_name}")
         tokenizer = model_name
         model = model_name
+        print(f"{model_name} loaded :)")
 
     else:
         print(f"Loading {model_name}")
@@ -202,3 +215,21 @@ def load_model(
                 device_map="auto",  # accelerate dispatches layers to ram, vram or disk
                 cache_dir=cache_dir,
             )
+            print(f"{model_name} loaded :)")
+
+
+# --------------------------------------------
+# functions to  transcribe the recorded audio
+
+transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-tiny.en")
+
+
+def transcribe(audio):
+    global audio_question
+    sr, y = audio
+    y = y.astype(np.float32)
+    y /= np.max(np.abs(y))
+
+    print("Transcribing the audio ...")
+    audio_question = transcriber({"sampling_rate": sr, "raw": y})["text"]
+    print("Transcription is done :) Got the following text:\n", audio_question)
