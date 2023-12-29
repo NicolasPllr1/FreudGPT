@@ -16,15 +16,6 @@ from openai import OpenAI
 
 import constants as cst
 
-from constants import (
-    CONTEXT,
-    MODEL_IDS,
-    PRECISION,
-    GENERATION_CONFIG,
-    DEFAULT_CACHE,
-)
-
-
 
 # --------------------------------------------
 # functions to generate the response
@@ -74,7 +65,6 @@ def generate_parrot(
         psy_name_chosen: name of the psychoanalyst chosen. The response will be generated based on this persona.
     """
     # Repeats the message like a parrot
-    print(f"Message received by the parrot :\n{message}")
     to_say = (
         f"Hey! {psy_name_chosen} here. Sorry I didn't hear well, did you say: {message}"
     )
@@ -151,11 +141,10 @@ def generate_openai(
 
     # /!\ You need your API secret key as an environment variable /!\ to use OpenAI's API
     client = OpenAI()
-    
+
     ## test if an OpenAI API key is available as en environment variable
     # if client.api_key is None:
     #    print("No OpenAI API key found. OpenAI's API will not be used.")
-
 
     # add the context of the chosen psychoanalyst
     psy_context = cst.CONTEXT[psy_name_chosen]
