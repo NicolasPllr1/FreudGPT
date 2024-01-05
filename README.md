@@ -1,6 +1,8 @@
 # FreudGPT - the psychologist assistant 
 
-![Alt "Freud Ai-generated image"](img/stable-diffusion-turbo_Freud.jpeg)
+<p align="center">
+  <img src="assets/sd-turbo_Freud.jpeg"  alt="Freud at his desk by stable-diffusion">
+</p>
 
 **Choose the psychologist you would like advice from and try it out !**
 
@@ -15,4 +17,8 @@ Fine-tuning (QLoRA ?) open-source models on writtings from Freud, Winnicott, ...
 
 
 ## What the app looks like : 
-![Alt app_preview](img/app_screenshot.png)
+![Alt app_preview](assets/app_screenshot.png)
+
+<p align="center">
+  <img src="assets/app_screenshot.png"  alt="app screenshot">
+</p>
