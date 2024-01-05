@@ -30,7 +30,7 @@ def generate_answer(
     # tokenizer: AutoTokenizer | None = None,
 ):
     """
-    Root function for generating answers.
+    Rooter function for generating answers.
     Dispatches the generation to the right function based on the chosen model.
 
     Parameters:
