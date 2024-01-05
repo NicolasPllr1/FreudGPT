@@ -1,6 +1,10 @@
-gradio --upgrade
-openai --upgrade
-torch --upgrade
-transformers --upgrade
-bitsandbytes --upgrade
-accelerate --upgrade
+# to build the web app with Gradio
+numpy>=1.26
+gradio>=4.7
+# to use OpenAI's API
+openai>=1.6             
+# to use open-source models from the HuggingFace model hub
+torch>=2.1
+transformers>=4.36 
+accelerate>=0.25
+bitsandbytes
