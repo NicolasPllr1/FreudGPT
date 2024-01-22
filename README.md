@@ -21,6 +21,8 @@ The specialization into a psychologist persona is achieved through simple prompt
 - [x] Add possibility to use open-source LLMs
 - [x] Add speech recognition (whisper) 
 - [ ] Add fine-tuned LLMs on psychology content
+- [ ] Instead of fine-tuning, explore RAG solutions
+- [ ] Instead of fine-tuning, try to build an instruct-like dataset and compare different methods like RLHF and DPO
 - [ ] Go more multi-modal
 
 Next I would like to fine-tune open-source models (probably on consumer hardware using QLoRA) on writtings from Freud, Winnicott, ... to make ithem better specialists.
